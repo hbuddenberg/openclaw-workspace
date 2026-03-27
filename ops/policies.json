@@ -1,0 +1,46 @@
+{
+  "auto_approve_enabled": true,
+  "auto_approve_rules": [
+    {
+      "id": "low-risk-research",
+      "description": "Auto-approve research, analysis, and health check tasks",
+      "conditions": {
+        "action_kinds": ["research", "analyze", "summarize", "health_check"],
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "agent-alerts",
+      "description": "Auto-approve agents alerting or notifying about issues — they need to get through immediately",
+      "conditions": {
+        "action_kinds": ["alert", "notify", "health_check"]
+      }
+    }
+  ],
+  "caps": {
+    "daily_tweets": 5,
+    "daily_dms": 10,
+    "daily_emails": 5,
+    "daily_blog_posts": 2
+  },
+  "work_hours": {
+    "start": "09:00",
+    "end": "22:00",
+    "timezone": "Europe/Madrid"
+  },
+  "require_approval": [
+    "send_email",
+    "send_dm",
+    "post_tweet",
+    "publish_blog",
+    "git_push",
+    "deploy"
+  ],
+  "never_auto_approve": [
+    "send_email",
+    "git_push",
+    "deploy",
+    "delete"
+  ],
+  "proposal_expiry_hours": 24
+}
