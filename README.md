@@ -1,18 +1,30 @@
 # OpenClaw Starter Kit 🦞
 
-Un workspace completo para darle a tu agente de IA personalidad real, memoria persistente, autonomía y un equipo de agentes especializados trabajando para ti.
+Un workspace completo para montar un asistente de IA personal con memoria persistente, personalidad propia y un equipo de agentes especializados.
 
 Compatible con **OpenClaw 2026.3.22+**.
 
 ---
 
+## Cómo empezar
+
+```bash
+git clone https://github.com/edunavajas/openclaw-workspace.git
+cd openclaw-workspace
+bash install.sh
+```
+
+El script copia los ficheros al directorio de trabajo de OpenClaw (`~/.openclaw`) y crea las carpetas necesarias. Necesitas tener OpenClaw instalado antes de ejecutarlo.
+
+---
+
 ## ¿Qué es esto?
 
-Este es el workspace que uso como base para montar asistentes de IA personales serios. No el típico "chatbot con instrucciones". Hablo de un sistema que:
+Es el workspace que uso como base para montar asistentes de IA personales. No el típico "chatbot con instrucciones". Un sistema que:
 
 - 🧠 **Recuerda entre sesiones** — logs diarios + memoria a largo plazo curada por el propio agente
-- 🎭 **Tiene personalidad de verdad** — opiniones, tono propio, límites claros (nada de respuestas corporativas vacías)
-- 👥 **Trabaja en equipo** — agente de contenido, de dev y de investigación que se coordinan solos
+- 🎭 **Tiene personalidad propia** — opiniones, tono, límites claros (sin respuestas corporativas vacías)
+- 👥 **Trabaja en equipo** — agentes de contenido, dev e investigación que se coordinan entre ellos
 - 🔒 **Tiene políticas de seguridad** — aprobación automática para lo de bajo riesgo, stops duros para lo peligroso
 - ⚡ **Es proactivo** — revisa el correo, el calendario, menciones, sin que tengas que pedírselo
 - 🔄 **Los agentes se activan entre sí** — un tweet publicado → análisis de engagement → borrador de respuesta
@@ -40,7 +52,7 @@ Una vez tengas OpenClaw corriendo en el servidor, continúa.
 El workspace va en `~/.openclaw` dentro de tu servidor:
 
 ```bash
-git clone https://github.com/TU_USUARIO/openclaw-starter-kit ~/.openclaw
+git clone https://github.com/edunavajas/openclaw-workspace.git ~/.openclaw
 cd ~/.openclaw
 mkdir -p memory
 ```
@@ -55,7 +67,7 @@ openclaw gateway start
 
 ## Paso 3 — Configurar tu agente (habla con él)
 
-Aquí es donde cambia todo respecto a otros setups: **no editas los ficheros a mano**. Le dices a tu agente que los configure por ti.
+Aquí es donde difiere de otros setups: **no editas los ficheros a mano**. Le dices a tu agente que los configure por ti.
 
 Abre el dashboard (`openclaw dashboard`) o conéctate por el canal que prefieras (Telegram, WhatsApp...) y lanza este prompt:
 
@@ -127,7 +139,7 @@ Ejemplos de mi estilo: [PON 2-3 EJEMPLOS].
 
 ## Paso 4 — Conectar tu canal de mensajería
 
-Puedes elegir el canal que más te guste. **Telegram es el más fácil de configurar** y funciona perfecto desde el móvil.
+Puedes usar el canal que quieras. **Telegram es el más fácil de configurar** y funciona bien desde el móvil.
 
 ### Telegram (recomendado — 5 minutos)
 
@@ -209,7 +221,7 @@ iMessage requiere un Mac físico con Messages.app configurado. No funciona en se
 | `HEARTBEAT.md` | Checks periódicos — qué monitorizar proactivamente |
 | `TOOLS.md` | Notas de setup local — SSH, dispositivos, quirks |
 | `SQUAD.md` | Guía del equipo multi-agente |
-| `TOKEN-OPTIMIZATION.md` | Cómo multiplicar x3-5 tu suscripción al LLM |
+| `TOKEN-OPTIMIZATION.md` | Cómo reducir el consumo de tokens del LLM |
 | `MESH.md` | Setup multi-máquina — distribuye el cómputo |
 
 ### Equipo de agentes (`agents/`)
