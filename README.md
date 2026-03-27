@@ -396,14 +396,3 @@ Rellena `USER.md`. Ponle nombre. Cuéntale tus preferencias. Cuanto más sepa, m
 
 Construido con [OpenClaw](https://openclaw.ai) • [Docs](https://docs.openclaw.ai) • [Comunidad](https://discord.com/invite/clawd)
 
----
-
-## Un ejemplo real: briefing diario automático
-
-Vale, todo esto está muy bien en teoría. Vamos a montarlo de verdad con un caso de uso concreto para que veas cómo funciona.
-
-Lo que vamos a hacer es un **briefing diario automático**. Cada mañana, antes de que te levantes, OpenClaw revisa tu calendario del día, mira las últimas menciones y notificaciones relevantes, comprueba novedades en los temas que sigues, y te manda todo resumido por Telegram. Sin que tú hagas nada. Sin que tu ordenador esté encendido.
-
-En el `HEARTBEAT.md` añades las instrucciones: a qué hora tiene que ejecutarse, qué fuentes tiene que revisar, qué formato quieres para el resumen, y a qué canal de Telegram mandarlo. El agente lo lee, ejecuta la tarea a la hora que has configurado, y cuando te despiertas tienes el briefing esperándote en el móvil.
-
-Esto es lo que hace que [MyClaw](https://devknives.link/myclaw) tenga sentido por encima de tener OpenClaw en local: si esto lo corres en tu máquina y la tienes apagada por la noche, no hay briefing. Si corre en MyClaw, da igual. Está encendido siempre.
