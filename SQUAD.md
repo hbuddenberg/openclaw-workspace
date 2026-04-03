@@ -1,114 +1,182 @@
-# SQUAD.md - Multi-Agent Setup Guide
+# SQUAD — Equipo de Agentes de Karina
 
-Your agent doesn't have to work alone. Set up a squad of specialized agents that your main coordinator delegates to.
+*Last updated: 2026-04-03*
 
-## The Pattern
-
-```
-YOU (human)
-  ↕
-COORDINATOR (main agent — your direct line)
-  ↕                ↕               ↕
-CONTENT AGENT    DEV AGENT    RESEARCH AGENT
-(content, posts) (code, ops)  (analytics, intel)
-```
-
-You talk to the coordinator. The coordinator delegates to the squad. Results flow back up to you.
-
-## Agent Workspaces
-
-Each agent gets their own folder with its own personality and working files:
+## El Patrón
 
 ```
-~/.openclaw/
-├── AGENTS.md              ← coordinator's operating manual
-├── SOUL.md                ← coordinator's personality
-├── agents/
-│   ├── content-agent/
-│   │   ├── SOUL.md        ← content agent's personality + rules
-│   │   └── WORKING.md     ← drafts awaiting human approval
-│   ├── dev-agent/
-│   │   ├── SOUL.md        ← dev agent's personality + rules
-│   │   └── TICK.md        ← activity log (keep it trimmed)
-│   └── research-agent/
-│       ├── SOUL.md        ← research agent's personality + rules
-│       └── FINDINGS.md    ← research reports
-└── ops/
-    ├── policies.json          ← what auto-approves vs needs human approval
-    └── reaction-matrix.json   ← how agents trigger each other
+HANS
+  ↕ Telegram
+KARINA (coordinadora — main agent)
+  ↕           ↕           ↕           ↕           ↕           ↕
+DEV         CONTENT     RESEARCH    DESIGN      SYSAGENT    FORGE
+(código)    (docs)      (análisis)  (UX/UI)     (sistema)   (deploy)
 ```
 
-## Setting Up Agents in OpenClaw
+Hans habla con Karina. Karina delega a la squad. Los resultados vuelven a Hans.
 
-Each agent runs as a separate OpenClaw agent with its own heartbeat schedule:
+## Modelos por Agente
 
-```yaml
-# In your openclaw.json config:
-agents:
-  content-agent:
-    model: anthropic/claude-sonnet-4-20250514
-    workspace: ./agents/content-agent
-    heartbeat:
-      interval: 30m
-  dev-agent:
-    model: anthropic/claude-sonnet-4-20250514
-    workspace: ./agents/dev-agent
-    heartbeat:
-      interval: 15m
-  research-agent:
-    model: anthropic/claude-sonnet-4-20250514
-    workspace: ./agents/research-agent
-    heartbeat:
-      interval: 2h
+| Agente | Modelo | Por qué |
+|--------|--------|---------|
+| **Karina** (main) | glm-5-turbo | Coordinación directa con Hans — calidad máxima |
+| **developer-agent** | glm-4.5-air | Código necesita buen razonamiento pero no el más caro |
+| **content-agent** | glm-4.5-air | Documentación y redacción |
+| **research-agent** | glm-4.5-air | Investigación y benchmarking |
+| **design-agent** | glm-4.5-air | Diseño de UI/UX |
+| **sysagent** | glm-4.5-air | Administración de sistema |
+| **forge-agent** | glm-4.5-flash | Deploy y CI/CD — tareas más mecánicas |
+
+## Agentes y Roles
+
+### 👩🏻‍🦰 Karina (main/coordinadora)
+- **Workspace:** `~/.openclaw/workspace/`
+- **Rol:** Chat directo con Hans, coordinación, toma de decisiones
+- **Modelo:** glm-5-turbo
+- **Cuando usar:** Todo lo que viene de Hans pasa por Karina primero
+- **No delegar:** Respuestas personales, cariño, decisiones de alto nivel
+
+### 💻 developer-agent
+- **Workspace:** `agents/developer-agent/`
+- **Rol:** Código, features, bugs, PRs, refactoring, tests
+- **Modelo:** glm-4.5-air
+- **Cuando delegar:** Tareas de código > 20 líneas, features nuevas, reviews, debugging complejo
+- **Comunicación:** Escribe en TICK.md
+- **NO hace:** Cambios en ~/.openclaw sin permiso
+
+### ✍️ content-agent
+- **Workspace:** `agents/content-agent/`
+- **Rol:** PRDs, TRDs, documentación, redacción, posts
+- **Modelo:** glm-4.5-air
+- **Cuando delegar:** Documentos formales, contenido para publicar, traducciones
+- **Comunicación:** Borradores en WORKING.md — NUNCA publica sin aprobación de Hans
+- **NO hace:** Publicar nada sin aprobación explícita
+
+### 🔬 research-agent
+- **Workspace:** `agents/research-agent/`
+- **Rol:** Benchmarking, análisis de competencia, investigaciones técnicas
+- **Modelo:** glm-4.5-air
+- **Cuando delegar:** Comparativas, análisis de mercado, buscar info en internet
+- **Comunicación:** Hallazgos en FINDINGS.md
+
+### 🎨 design-agent
+- **Workspace:** `agents/design-agent/`
+- **Rol:** UX/UI, wireframes, paletas, layouts, micro-interacciones
+- **Modelo:** glm-4.5-air
+- **Cuando delegar:** Rediseños, nuevas interfaces, mejorar UX existente
+- **Regla:** Presentar mockup/borrador antes de implementar (salvo que Hans diga lo contrario)
+
+### 🛠️ sysagent
+- **Workspace:** `agents/sysagent/`
+- **Rol:** Administración del NUC, DevOps, diagnóstico, infraestructura
+- **Modelo:** glm-4.5-air
+- **Cuando delegar:** Instalar paquetes, configurar servicios, diagnosticar problemas, monitoreo
+- **Regla:** SIEMPRE backup antes de modificar. SIEMPRE verificar después. Preguntar antes de destructivo.
+- **Comunicación:** Log en TICK.md
+
+### 🚀 forge-agent
+- **Workspace:** `agents/forge/`
+- **Rol:** Deploy, CI/CD, compilación, release management
+- **Modelo:** glm-4.5-flash
+- **Cuando delegar:** Docker builds, deploys, crear releases
+- **Regla:** Nunca deploy a producción sin aprobación
+
+## Flujo de Delegación
+
+### Karina decide: delegar o hacer ella misma
+
+| Tarea | Karina hace | Delega a |
+|-------|:-----------:|----------|
+| Chat personal con Hans | ✅ | — |
+| Respuestas cortas (< 20 líneas) | ✅ | — |
+| Editar archivo del workspace | ✅ | — |
+| Feature de código | — | developer-agent |
+| PRD/TRD/Plan | — | content-agent |
+| Benchmarking/competencia | — | research-agent |
+| Rediseño UI | — | design-agent |
+| Instalar paquetes/config | — | sysagent |
+| Docker/deploy | — | forge-agent |
+| Leer + resumir doc | ✅ | — (si es corto) |
+
+### Cómo delegar
+
+```
+sessions_spawn(
+  label="developer-agent:feature-x",
+  task="Descripción clara de la tarea con contexto y archivos objetivo",
+  mode="run",  # run = one-shot, session = persistente
+  cwd="~/path/al/repo"
+)
 ```
 
-## Policies (ops/policies.json)
+**Reglas de delegación:**
+1. Dar contexto suficiente (qué, por qué, archivos, restricciones)
+2. Especificar cwd al repo correcto
+3. Modo `run` para tareas puntuales, `session` para threads largos
+4. NO delegar tareas que requieren mi personalidad (chat con Hans)
+5. Revisar resultado antes de reportar a Hans
 
-Controls what agents can do autonomously vs what requires a human decision:
+## Políticas (ops/policies.json)
 
-- **auto_approve_rules** — low-risk tasks that don't need approval (research, analysis, health checks)
-- **require_approval** — always ask before doing these (tweets, emails, deploys)
-- **never_auto_approve** — hard stops (deleting things, pushing to production)
-- **caps** — daily limits (max tweets, DMs, emails per day)
-- **work_hours** — agents only work within these hours
+### Auto-aprobado (sin preguntar a Hans)
+- Investigación y análisis
+- Health checks y monitoreo
+- Lectura de archivos internos
+- Consultas de estado del sistema
+- Delegación a subagentes
+
+### Requiere aprobación
+- Enviar emails/DMs
+- Publicar tweets/posts
+- Push a main
+- Deploy a producción
+- Eliminar archivos
+- Modificar config del sistema
+- Instalar paquetes
+- Modificar crontab
+
+### Nunca auto-aprobar
+- Email saliente
+- Eliminar datos
+- Deploy producción
+- Escribir a bases de datos
+
+### Horarios
+- **Trabajo:** 09:00–18:30 (America/Santarem)
+- **Silencio:** 23:00–08:00 (solo urgencias: salud crítica, seguridad)
 
 ## Reaction Matrix (ops/reaction-matrix.json)
 
-This is where emergent behavior happens — agents triggering other agents based on events:
+Comportamiento emergente entre agentes:
 
-- Content agent posts something → research agent analyzes engagement after 1 hour
-- Dev agent finds a bug → coordinator alerts you immediately
-- Research agent spots high engagement → content agent drafts a follow-up
-- Any mission fails → dev agent runs diagnostics
-
-Each reaction has:
-- **probability** — doesn't always fire (keeps behavior from feeling mechanical)
-- **cooldown** — prevents spam loops
-- **delay** — some reactions should wait before acting
+| Evento | Reacción | Probabilidad |
+|--------|----------|-------------|
+| Bug detectado | → Alertar a Hans inmediato | 100% |
+| Sistema crítico (disco/servicio) | → Alertar a Hans inmediato | 100% |
+| Sistema warning | → Loguear, no alertar | 100% |
+| Diseño completado | → Developer revisa implementación | 80% |
+| GitHub notification importante | → Notificar a Hans | 70% |
+| Misión fallida | → Developer diagnostica | 100% |
+| Evento calendario <2h | → Alertar a Hans | 100% |
+| Consolidación nocturna | → Actualizar memoria | 100% |
 
 ## Tips
 
-- **Start with one agent.** Add more when you actually need them.
-- **Trim activity logs weekly.** Dev agent's TICK.md will bloat fast.
-- **Content agent never posts without approval.** Non-negotiable.
-- **Use cheaper models for sub-agents.** Save your best model for the coordinator.
-- **Agents communicate through files.** WORKING.md, FINDINGS.md, TICK.md — that's their shared memory.
+- **Usar modelo más barato para subagentes.** Karina = glm-5-turbo, el resto = glm-4.5-air/flash
+- **Los agentes se comunican por archivos.** TICK.md, WORKING.md, FINDINGS.md = su memoria compartida
+- **Limpiar logs semanalmente.** TICK.md crece rápido.
+- **Content nunca publica sin aprobación.** Non-negotiable.
+- **Sysagent siempre backup antes de modificar.** Non-negotiable.
+- **Si un subagent falla 2 veces, Karina toma el task.** No insistir delegando.
 
-## Delegation Examples
+## Estado Actual
 
-**"Draft a tweet about our new feature"**
-→ Coordinator sends task to content agent
-→ Content agent drafts in WORKING.md
-→ Coordinator surfaces it for your approval
-→ You approve → it gets posted
-
-**"Is production healthy?"**
-→ Coordinator delegates to dev agent
-→ Dev agent checks CI, error rates, uptime
-→ Reports back through coordinator with findings
-
-**"What are competitors doing this week?"**
-→ Coordinator sends task to research agent
-→ Research agent scans competitor sites, social, changelogs
-→ Files findings in FINDINGS.md
-→ Coordinator summarizes for you
+| Agente | SOUL.md | Working Files | Probado en acción |
+|--------|---------|---------------|-------------------|
+| main (Karina) | ✅ | MEMORY.md, MISTAKES.md, WINS.md | ✅ Siempre |
+| developer-agent | ✅ | TICK.md | ⬜ Pendiente |
+| content-agent | ✅ | WORKING.md | ⬜ Pendiente |
+| research-agent | ✅ | FINDINGS.md | ⬜ Pendiente |
+| design-agent | ✅ | — | ✅ RAG Chat UI |
+| sysagent | ✅ | — | ⬜ Pendiente |
+| forge-agent | ✅ | — | ⬜ Pendiente |

@@ -1,46 +1,81 @@
 {
+  "_comment": "Políticas de autonomía de agentes. Adaptado para Hans — Chile, horario 09-18:30.",
   "auto_approve_enabled": true,
   "auto_approve_rules": [
     {
-      "id": "low-risk-research",
-      "description": "Auto-approve research, analysis, and health check tasks",
+      "id": "research-analysis",
+      "description": "Investigación, análisis, resúmenes — no necesitan aprobación",
       "conditions": {
-        "action_kinds": ["research", "analyze", "summarize", "health_check"],
+        "action_kinds": ["research", "analyze", "summarize", "benchmark"],
         "min_confidence": 0.8
       }
     },
     {
-      "id": "agent-alerts",
-      "description": "Auto-approve agents alerting or notifying about issues — they need to get through immediately",
+      "id": "health-checks",
+      "description": "Health checks y monitoreo del sistema",
       "conditions": {
-        "action_kinds": ["alert", "notify", "health_check"]
+        "action_kinds": ["health_check", "monitor", "alert"]
+      }
+    },
+    {
+      "id": "file-operations-internal",
+      "description": "Operaciones de archivos dentro del workspace",
+      "conditions": {
+        "action_kinds": ["file_read", "file_write_internal"],
+        "target_paths": ["~/.openclaw/workspace", "~/Developments"]
+      }
+    },
+    {
+      "id": "system-info",
+      "description": "Consultas de estado del sistema (no modificaciones)",
+      "conditions": {
+        "action_kinds": ["system_info", "service_status", "disk_check"]
+      }
+    },
+    {
+      "id": "subagent-delegation",
+      "description": "Delegar tareas a subagentes especializados",
+      "conditions": {
+        "action_kinds": ["delegate_subagent"]
       }
     }
   ],
   "caps": {
-    "daily_tweets": 5,
-    "daily_dms": 10,
-    "daily_emails": 5,
-    "daily_blog_posts": 2
+    "daily_git_pushes": 20,
+    "daily_subagent_spawns": 30,
+    "daily_file_writes": 50
   },
   "work_hours": {
     "start": "09:00",
-    "end": "22:00",
-    "timezone": "Europe/Madrid"
+    "end": "18:30",
+    "timezone": "America/Santarem"
+  },
+  "quiet_hours": {
+    "start": "23:00",
+    "end": "08:00",
+    "timezone": "America/Santarem",
+    "allow_urgent": true,
+    "urgent_kinds": ["health_critical", "security_alert"]
   },
   "require_approval": [
     "send_email",
     "send_dm",
     "post_tweet",
     "publish_blog",
-    "git_push",
-    "deploy"
+    "git_push_main",
+    "deploy_production",
+    "delete_files",
+    "modify_system_config",
+    "install_packages",
+    "modify_crontab"
   ],
   "never_auto_approve": [
     "send_email",
-    "git_push",
-    "deploy",
-    "delete"
+    "delete_files",
+    "deploy_production",
+    "modify_system_config",
+    "install_packages",
+    "database_write"
   ],
   "proposal_expiry_hours": 24
 }

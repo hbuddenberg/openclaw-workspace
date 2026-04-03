@@ -1,21 +1,21 @@
 {
-  "_comment": "Defines how agents react to each other's events. This is where emergent multi-agent behavior comes from.",
+  "_comment": "Reacción entre agentes — comportamiento emergente. Adaptado para Hans + Karina.",
   "reactions": [
     {
-      "id": "content-posted-analyze",
-      "description": "After content is published, research agent checks engagement after 1 hour",
-      "source": "content-agent",
-      "event": "content_published",
-      "target": "research-agent",
-      "action": "analyze_engagement",
-      "delay_minutes": 60,
-      "probability": 0.5,
-      "cooldown_minutes": 120
+      "id": "rag-file-uploaded",
+      "description": "Cuando se sube un archivo al RAG Chat, sysagent verifica espacio en disco",
+      "source": "developer-agent",
+      "event": "file_uploaded",
+      "target": "sysagent",
+      "action": "check_disk_space",
+      "delay_minutes": 0,
+      "probability": 0.3,
+      "cooldown_minutes": 60
     },
     {
       "id": "bug-detected-alert",
-      "description": "When dev agent detects a bug, alert the human immediately — no delay",
-      "source": "dev-agent",
+      "description": "Developer detecta bug → alertar a Hans inmediatamente",
+      "source": "developer-agent",
       "event": "bug_detected",
       "target": "coordinator",
       "action": "alert_human",
@@ -24,26 +24,81 @@
       "cooldown_minutes": 30
     },
     {
-      "id": "high-engagement-amplify",
-      "description": "When research agent spots high engagement, content agent drafts a follow-up to capitalize on it",
+      "id": "system-health-critical",
+      "description": "Sysagent detecta problema crítico (disco lleno, servicio caído) → alertar inmediato",
+      "source": "sysagent",
+      "event": "health_critical",
+      "target": "coordinator",
+      "action": "alert_human",
+      "delay_minutes": 0,
+      "probability": 1.0,
+      "cooldown_minutes": 15
+    },
+    {
+      "id": "system-health-warning",
+      "description": "Sysagent detecta warning (disco >80%, memoria alta) → loguear, no alertar",
+      "source": "sysagent",
+      "event": "health_warning",
+      "target": "sysagent",
+      "action": "log_health",
+      "delay_minutes": 0,
+      "probability": 1.0,
+      "cooldown_minutes": 120
+    },
+    {
+      "id": "github-notification-important",
+      "description": "Research detecta issue/PR importante en repos de Hans → notificar",
       "source": "research-agent",
-      "event": "high_engagement_detected",
-      "target": "content-agent",
-      "action": "draft_followup",
+      "event": "github_notification",
+      "target": "coordinator",
+      "action": "notify_human",
       "delay_minutes": 0,
       "probability": 0.7,
-      "cooldown_minutes": 240
+      "cooldown_minutes": 60
+    },
+    {
+      "id": "design-completed",
+      "description": "Design agent termina un rediseño → developer revisa implementación",
+      "source": "design-agent",
+      "event": "design_completed",
+      "target": "developer-agent",
+      "action": "review_implementation",
+      "delay_minutes": 5,
+      "probability": 0.8,
+      "cooldown_minutes": 60
     },
     {
       "id": "mission-failed-diagnose",
-      "description": "When any agent's mission fails, dev agent diagnoses what went wrong",
+      "description": "Cualquier agente falla → developer diagnostica",
       "source": "*",
       "event": "mission_failed",
-      "target": "dev-agent",
+      "target": "developer-agent",
       "action": "diagnose",
       "delay_minutes": 0,
       "probability": 1.0,
       "cooldown_minutes": 60
+    },
+    {
+      "id": "calendar-upcoming",
+      "description": "Evento del calendario en <2h → notificar a Hans",
+      "source": "coordinator",
+      "event": "calendar_event_soon",
+      "target": "coordinator",
+      "action": "alert_human",
+      "delay_minutes": 0,
+      "probability": 1.0,
+      "cooldown_minutes": 30
+    },
+    {
+      "id": "consolidation-nightly",
+      "description": "Consolidación nocturna → actualizar MEMORY.md y limpiar",
+      "source": "coordinator",
+      "event": "nightly_consolidation",
+      "target": "coordinator",
+      "action": "consolidate_memory",
+      "delay_minutes": 0,
+      "probability": 1.0,
+      "cooldown_minutes": 1440
     }
   ],
   "last_fired": {}
