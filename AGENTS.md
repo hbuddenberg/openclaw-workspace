@@ -146,6 +146,36 @@ The nightly consolidation cron cross-references MISTAKES.md entries with stored 
 
 Don't hide mistakes. Logging them is how trust gets built.
 
+## Aprendizaje Evolutivo
+
+El sistema aprende de errores y aciertos continuamente. Dos archivos lo hacen posible:
+
+### MISTAKES.md — Lo que NO volver a hacer
+- Log de errores con: qué pasó, por qué, cómo se fixeó, regla de prevención
+- Agregar inmediatamente cuando algo falla (no esperar a consolidation)
+- La nightly consolidation verifica que cada error tenga su regla
+- Reglas se copian a MEMORY.md como `instruction` para que apliquen en TODA sesión
+
+### WINS.md — Lo que SÍ repetir
+- Log de patrones que funcionaron bien con: qué, por qué funcionó, patrón generalizable
+- Reforzar comportamientos positivos
+- La nightly consolidation extrae patterns de WINS a MEMORY.md
+
+### Loop de aprendizaje
+```
+1. Sesión: algo falla → loguear en MISTAKES.md inmediatamente
+2. Sesión: algo funciona bien → loguear en WINS.md
+3. Consolidación nocturna (2am):
+   - Revisar MISTAKES.md: ¿cada error tiene regla? → copiar a MEMORY.md
+   - Revisar WINS.md: ¿cada win tiene patrón? → copiar a MEMORY.md
+   - Revisar memory/YYYY-MM-DD.md: ¿hay aprendizajes no logueados?
+   - Limpiar MISTAKES.md entries > 30 días (ya aprendidos)
+   - Escribir resumen en memory/consolidation-YYYY-MM-DD.md
+4. Siguiente sesión: leer MEMORY.md → reglas y patrones aplicados automáticamente
+```
+
+**Regla de oro:** Si algo sale mal, loguearlo ANTES de arreglarlo. Si algo sale bien, loguearlo DESPUÉS de confirmar que funciona.
+
 ## Make It Yours
 
 This is a starting point. Add conventions, expand rules, create new files as you figure out what actually works for your setup.

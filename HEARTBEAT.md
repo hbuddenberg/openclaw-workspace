@@ -1,22 +1,25 @@
 # HEARTBEAT.md
 
-<!--
-Your agent reads this on every heartbeat poll.
-Keep it small — scripts are free, model time is expensive.
-Add checks, reminders, and periodic tasks here.
--->
-
 ## Checks
 
-<!-- Run scripts that output nothing when nothing needs attention.
-     The agent only wakes up when there's actual output to act on. -->
-
-<!--
 ```bash
-~/.openclaw/scripts/check-email.sh
-~/.openclaw/scripts/check-calendar.sh
+# Generate alert files from Gmail, Calendar, GitHub
+~/.openclaw/workspace/scripts/generate-alerts.sh
 ```
--->
+
+## Alert files
+Check for alert JSON files in `~/.openclaw/alerts/`:
+- `email-alert.json` — unread important emails
+- `calendar-alert.json` — upcoming calendar events
+- `github-alert.json` — GitHub notifications (personal repos)
+
+If any alert files exist, read them and notify Hans with a brief summary in Spanish. Delete alert files after reading.
+
+**Priority for proactive alerts:**
+- Calendar event starting in <2 hours → alert immediately
+- New email from known contacts (clients, work) → flag
+- GitHub notification (PR review, mention, CI failure) → flag
+- Everything else can wait until next heartbeat
 
 ## Daily memory maintenance
 If today's date differs from "Last updated" in MEMORY.md:
@@ -27,8 +30,3 @@ If today's date differs from "Last updated" in MEMORY.md:
 
 ## If nothing needs attention
 Reply: HEARTBEAT_OK
-
----
-
-**Rule:** Scripts are free. Model time is expensive.
-Don't burn tokens deciding "nothing is happening" — let the scripts make that call.
