@@ -1,130 +1,117 @@
-# Multi-Machine OpenClaw Mesh
+# MESH — Multi-Máquina OpenClaw
 
-Run multiple OpenClaw agents across machines that can talk to each other — useful when you want to distribute compute, isolate workloads, or give each agent its own identity.
+*Last updated: 2026-04-03*
 
-## Architecture
+Controlar múltiples máquinas desde Karina en el NUC.
+
+## Arquitectura
 
 ```
-┌─────────────────────┐     tailscale      ┌─────────────────────┐
-│   Machine #1        │◄──────────────────►│   Machine #2        │
-│   "main"            │    100.x.x.x       │   "forge"           │
-│                     │                     │                     │
-│   • messaging       │                     │   • heavy compute   │
-│   • coordinator     │   chat.send (SSH)   │   • build tasks     │
-│   • main agent      │◄──────────────────►│   • research jobs   │
-│   • notifications   │   webhook hooks     │   • background work │
-└─────────────────────┘                     └─────────────────────┘
+┌─────────────────────────┐     Tailscale      ┌─────────────────────┐
+│   NUC (Karina)          │◄──────────────────►│   Machine #2         │
+│   "main"                │                    │   "forge"            │
+│                         │   SSH + chat.send   │                     │
+│   • Coordinación        │◄──────────────────►│   • Heavy compute    │
+│   • Chat con Hans       │                    │   • Builds           │
+│   • Subagentes          │                    │   • Deploy targets   │
+│   • Servicios críticos  │                    │   • Testing          │
+└─────────────────────────┘                    └─────────────────────┘
 ```
 
-## Setup
+## Setup Actual
 
-### Prerequisites
-- Both machines on the same Tailscale network
-- Generate a pre-auth key at https://login.tailscale.com/admin/settings/keys
+### Máquina Principal: NUC (Nuc-Claw)
+- **Hostname:** Nuc-Claw
+- **OS:** Arch Linux (kernel zen)
+- **IP:** 192.168.1.5 (LAN), Tailscale: pendiente de verificar
+- **Usuario:** hbuddenberg
+- **Rol:** Coordinadora principal, corre OpenClaw gateway, todos los servicios
 
-### Machine 1 (already running)
-1. Make sure Tailscale is connected:
-   ```bash
-   tailscale up --hostname=openclaw-main
-   tailscale ip -4  # note this IP
-   ```
+### Máquinas Potenciales
+- **MacBook de Hans** — laptop, no siempre-on
+- **VPS** — futuro, para servicios públicos
+- **Raspberry Pi** — futuro, para IoT/monitoreo
 
-2. Enable Tailscale mode in openclaw config:
-   ```json
-   "gateway": {
-     "tailscale": { "mode": "on" }
-   }
-   ```
+## Tailscale (VPN Mesh)
 
-### Machine 2 (new)
+### Verificar estado
 ```bash
-# Bootstrap with one command:
-./bootstrap-mac.sh \
-  --identity forge \
-  --tailscale-key tskey-auth-xxxxx \
-  --peer http://100.x.x.x:18789 \
-  --alert +1XXXXXXXXXX
+tailscale status          # ver máquinas conectadas
+tailscale ip -4           # IP del NUC en Tailscale
+tailscale ip -4 -m        # todas las IPs del mesh
 ```
 
-### Accounts & Identity
-
-| Thing | Same or Separate? | Why |
-|-------|-------------------|-----|
-| OS user account | **separate** | Clean isolation, own keychain |
-| Apple ID (if Mac) | **separate** | Own iCloud, own iMessage number |
-| GitHub | **same** (deploy key per repo) | Access same repos, separate SSH keys |
-| Anthropic API | **same account** | One bill, separate API keys |
-| Tailscale | **same network** | They need to reach each other |
-| OpenClaw license | **separate install** | Each gateway is independent |
-
-### Cross-Gateway Communication
-
-Once both machines are on Tailscale, they can talk to each other.
-
-#### True Compute Delegation (recommended)
-
-Use `chat.send` via SSH to run AI compute on the remote machine:
-
+### Si no está configurado aún
 ```bash
-ssh forge@100.x.x.x "openclaw gateway call chat.send \
-  --token '<forge-gateway-token>' \
-  --params '{
-    \"sessionKey\": \"agent:main:main\",
-    \"message\": \"run the test suite on your-app repo\",
-    \"idempotencyKey\": \"task-$(date +%s)\"
-  }'"
+# En el NUC
+echo "7907" | sudo -S tailscale up --hostname=nuc-claw
+# Si necesita auth key (headless):
+tailscale up --authkey=tskey-auth-XXXXX
 ```
 
-This runs AI inference on forge's hardware using forge's auth. The compute is genuinely delegated.
+## Delegación Real entre Máquinas
 
-#### What Does NOT Delegate Compute
-
-`sessions_spawn` with `gatewayUrl` does NOT run compute remotely. It still runs locally. Don't use it for true delegation.
-
-#### Other Communication Methods
-
-1. **Webhook hooks**: configure hooks to POST to peer gateway on events
-2. **Shared workspace via git**: both agents push/pull from the same repos
-
-### OAuth Token Sync Between Machines
-
-If both machines use Claude Code with OAuth (flat-rate subscription), tokens need syncing. They live at:
-
-```
-~/.claude/.credentials.json
-```
-
-Claude Code handles its own token refresh internally. Don't call the OAuth refresh endpoint directly (you'll hit rate limits). Instead:
-
-1. Run `claude -p 'ok'` to force an internal token refresh
-2. Read the fresh tokens from `~/.claude/.credentials.json`
-3. Copy them to wherever your agent needs them
-
-Example sync script (run as a cron every 2 hours):
+### Método 1: SSH + openclaw gateway call (recomendado)
 ```bash
-#!/bin/bash
-# sync-oauth-tokens.sh
-# force claude to refresh, then copy tokens to openclaw auth profile
-
-claude -p 'ok' 2>/dev/null  # triggers internal refresh
-CREDS="$HOME/.claude/.credentials.json"
-if [ -f "$CREDS" ]; then
-    cp "$CREDS" "$HOME/.openclaw/auth-profiles.json"
-    echo "[$(date)] tokens synced"
-fi
+# Ejecutar task en máquina remota via SSH
+ssh usuario@100.x.x.x "openclaw gateway call chat.send \
+  --token '<remote-gateway-token>' \
+  --params '{\"message\": \"<task>\", \"sessionKey\": \"agent:main:main\"}'"
 ```
 
-**Note:** if you run agents on separate accounts (recommended), each machine has its own tokens. Keep them separate — don't copy tokens between machines.
+### Método 2: SSH directo (sysagent puede usar)
+```bash
+# Ejecutar comando en máquina remota
+ssh usuario@100.x.x.x "docker compose -f /opt/app/docker-compose.yml up -d"
+```
 
-### Setup Gotchas
+### Método 3: sessions_spawn con gatewayUrl (NO delega compute real)
+```
+sessions_spawn(gatewayUrl="http://100.x.x.x:18789", ...)
+# ⚠️ Esto NO corre compute en la remota. Usa solo para routing.
+```
 
-1. **Device pairing**: the remote machine must approve the calling machine's device pairing first
-2. **Trusted proxies**: add the calling machine to `trustedProxies` in the remote machine's config
-3. **Auth profiles**: the remote machine's `auth-profiles.json` needs both access AND refresh token fields for auto-refresh to work
-4. **Token expiry**: set up the sync script as a cron to avoid overnight token death
+## Accounts por Máquina
 
-### Security
-- Gateway tokens are per-machine and never shared
-- Tailscale handles encryption + auth between machines
-- Each agent has its own memory store (no cross-contamination)
-- Peer communication goes through authenticated gateway endpoints
+| Thing | Misma/Separada | Por qué |
+|-------|:--------------:|---------|
+| OS user | Separada | Aislamiento limpio |
+| GitHub | Misma | Mismos repos, deploy keys por repo |
+| OpenClaw license | Separada | Cada gateway es independiente |
+| Tailscale | Misma red | Necesitan comunicarse |
+| z.ai API | Misma | Una sola bill |
+
+## Checklist para Agregar una Máquina
+
+1. [ ] Instalar OpenClaw en la nueva máquina
+2. [ ] Conectar a Tailscale: `tailscale up --hostname=<nombre>`
+3. [ ] Verificar conectividad: `ssh <user>@<tailscale-ip> "echo ok"`
+4. [ ] Obtener gateway token de la máquina remota
+5. [ ] Aprobar device pairing: `openclaw devices approve --latest` en la remota
+6. [ ] Testear delegación: SSH + chat.send con task simple
+7. [ ] Agregar a SQUAD.md con su rol
+8. [ ] Agregar a reaction-matrix.json si necesita reacciones
+
+## Checklist para MacBook (si Hans lo pide)
+
+1. [ ] Instalar OpenClaw via npm: `npm i -g openclaw`
+2. [ ] Configurar Tailscale (ya debería estar instalado)
+3. [ ] Obtener Tailscale IP: `tailscale ip -4`
+4. [ ] Configurar gateway con token auth
+5. [ ] Probar SSH desde el NUC al Mac
+6. [ ] Agregar a MESH.md
+
+## Seguridad
+
+- Gateway tokens son por máquina — NUNCA compartir
+- Tailscale maneja encriptación + autenticación entre máquinas
+- Cada máquina tiene su propia memoria (no contaminación cruzada)
+- Comunicación entre máquinas via SSH autenticado
+
+## Gotchas
+
+- **Device pairing:** La máquina remota debe aprobar al NUC como paired device
+- **Trusted proxies:** Agregar IP del NUC en `trustedProxies` de la remota
+- **Token expiry:** Los tokens de gateway pueden expirar — monitorear
+- **`sessions_spawn` con gatewayUrl NO delega compute** — usar SSH para delegación real
+- **Testear conectividad antes de delegar** — `ssh user@host "echo ok"` primero siempre
