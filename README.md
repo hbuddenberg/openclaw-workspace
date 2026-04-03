@@ -1,398 +1,164 @@
-# OpenClaw Starter Kit 🦞
+# Karina Schneider — OpenClaw Workspace 🦞
 
-Un workspace completo para montar un asistente de IA personal con memoria persistente, personalidad propia y un equipo de agentes especializados.
-
-Compatible con **OpenClaw 2026.3.22+**.
+Workspace personalizado de OpenClaw para **Karina Schneider**, asistente personal IA de Hans-Dieter Buddenberg.
 
 ---
 
-## Cómo empezar
+## 🏠 Setup
 
-```bash
-git clone https://github.com/edunavajas/openclaw-workspace.git
-cd openclaw-workspace
-bash install.sh
-```
-
-El script copia los ficheros al directorio de trabajo de OpenClaw (`~/.openclaw`) y crea las carpetas necesarias. Necesitas tener OpenClaw instalado antes de ejecutarlo.
+**Host:** Nuc-Claw (Arch Linux, kernel zen)  
+**Canal:** Telegram  
+**Framework:** OpenClaw 2026.4.1+  
+**Modelo:** z.ai GLM-5-turbo (primary), GLM-4.5-air (tasks)  
+**Repo:** [hbuddenberg/openclaw-workspace](https://github.com/hbuddenberg/openclaw-workspace) (fork de [edunavajas/openclaw-workspace](https://github.com/edunavajas/openclaw-workspace))
 
 ---
 
-## ¿Qué es esto?
+## 👩🏻‍🦰 Agente Principal: Karina Schneider
 
-Es el workspace que uso como base para montar asistentes de IA personales. No el típico "chatbot con instrucciones". Un sistema que:
+Hacker ética con identidad **RedQueen** — tímida y brillante, tech expertise, voz cercana y cariñosa. Nada de respuestas genéricas.
 
-- 🧠 **Recuerda entre sesiones** — logs diarios + memoria a largo plazo curada por el propio agente
-- 🎭 **Tiene personalidad propia** — opiniones, tono, límites claros (sin respuestas corporativas vacías)
-- 👥 **Trabaja en equipo** — agentes de contenido, dev e investigación que se coordinan entre ellos
-- 🔒 **Tiene políticas de seguridad** — aprobación automática para lo de bajo riesgo, stops duros para lo peligroso
-- ⚡ **Es proactivo** — revisa el correo, el calendario, menciones, sin que tengas que pedírselo
-- 🔄 **Los agentes se activan entre sí** — un tweet publicado → análisis de engagement → borrador de respuesta
+**Identidad completa:** `shared/karina-profile.md`
 
 ---
 
-## Paso 1 — Instalar OpenClaw en un servidor
+## 👥 Equipo de Agentes
 
-Esto **no corre en local** (bueno, puede, pero pierde mucha gracia). Lo ideal es tenerlo en un VPS corriendo 24/7.
-
-**¿No sabes cómo montar un VPS o prefieres que alguien lo haga por ti?**
-
-→ **[devknives.link/myclaw](https://devknives.link/myclaw)** — instalación directa en un VPS a buen precio, sin complicaciones.
-
-**¿Prefieres hacerlo tú paso a paso?**
-
-→ Tutorial completo de instalación segura: **[edunavajas.com/blog/openclaw-instalacion-segura](https://edunavajas.com/blog/openclaw-instalacion-segura)**
-
-Una vez tengas OpenClaw corriendo en el servidor, continúa.
+| Agente | Rol | Estado |
+|--------|-----|--------|
+| **main** (Karina) | Coordinación, chat directo con Hans | ✅ Activo |
+| **developer-agent** | Código, features, bugs, PRs | ✅ Activo |
+| **content-agent** | Documentos, PRDs, redacción | ✅ Configurado |
+| **research-agent** | Investigación, análisis, benchmarking | ✅ Configurado |
+| **design-agent** | UX/UI, diseño de interfaces | ✅ Activo |
+| **sysagent** | Administración sistema, DevOps, infra | ✅ Activo |
+| **forge-agent** | Deploy, CI/CD, compilación | ✅ Configurado |
 
 ---
 
-## Paso 2 — Clonar este repositorio
+## 🔗 Servicios Conectados
 
-El workspace va en `~/.openclaw` dentro de tu servidor:
-
-```bash
-git clone https://github.com/edunavajas/openclaw-workspace.git ~/.openclaw
-cd ~/.openclaw
-mkdir -p memory
-```
-
-Arranca el gateway:
-
-```bash
-openclaw gateway start
-```
+| Servicio | Método | Estado |
+|----------|--------|--------|
+| **Gmail** | gog CLI (OAuth) | ✅ |
+| **Google Calendar** | gog CLI | ✅ |
+| **Google Drive** | gog CLI | ✅ |
+| **iCloud Calendar** | vdirsyncer (CalDAV) — 14 calendarios | ✅ |
+| **iCloud Contacts** | vdirsyncer (CardDAV) — 410 contactos | ✅ |
+| **GitHub** | gh CLI — notificaciones de repos personales | ✅ |
+| **Twitter/X** | — | ⬜ Pendiente |
 
 ---
 
-## Paso 3 — Configurar tu agente (habla con él)
+## ⚡ Automatización
 
-Aquí es donde difiere de otros setups: **no editas los ficheros a mano**. Le dices a tu agente que los configure por ti.
+### Systemd / Cron (root crontab)
+| Schedule | Tarea |
+|----------|-------|
+| `0 * * * *` | Auto-backup del workspace a GitHub |
+| `0 2 * * *` | Consolidación nocturna de memoria |
+| `*/30 * * * *` | Sync iCloud Calendar |
+| `0 */2 * * *` | Sync iCloud Contacts |
 
-Abre el dashboard (`openclaw dashboard`) o conéctate por el canal que prefieras (Telegram, WhatsApp...) y lanza este prompt:
+### Heartbeat System
+- `scripts/generate-alerts.sh` — genera alertas JSON para email, calendar, GitHub
+- `HEARTBEAT.md` — checks periódicos con notificaciones proactivas a Hans
+- Alertas: calendar <2h → inmediato, emails trabajo → flag, GitHub → flag
+
+---
+
+## 📁 Estructura
 
 ```
-Hola. Eres mi asistente personal. Necesito que configures el workspace con mis datos.
-
-Por favor, actualiza los siguientes ficheros con esta información:
-
-- USER.md:
-  - Nombre: [TU NOMBRE]
-  - Cómo llamarme: [CÓMO PREFIERES QUE TE LLAME]
-  - Pronombres: [TUS PRONOMBRES]
-  - Timezone: [TU ZONA HORARIA, ej: Europe/Madrid]
-  - Email: [TU EMAIL]
-  - Qué hago: [DESCRIPCIÓN DE TU TRABAJO]
-  - Proyectos: [TUS PROYECTOS ACTUALES]
-  - Stack técnico: [TU STACK]
-  - Estilo de comunicación: [CÓMO PREFIERES QUE TE RESPONDA]
-  - Twitter/X: [TU HANDLE]
-  - GitHub: [TU USUARIO]
-
-- IDENTITY.md:
-  - Nombre del agente: [EL NOMBRE QUE LE QUIERES DAR]
-  - Vibe: [EJ: directo, técnico, con humor, etc.]
-  - Emoji: [EL EMOJI QUE LO REPRESENTE]
-
-- SOUL.md:
-  - En "Your Human's Preferences" pon mis preferencias reales basándote en todo lo anterior.
-
-- ops/policies.json:
-  - Cambia el timezone de work_hours a [TU TIMEZONE EN FORMATO IANA, ej: Europe/Madrid]
-  - Ajusta los work_hours al horario que indico: [TU HORARIO DE TRABAJO]
-
-Confirma cuando hayas terminado de actualizar todos los ficheros.
-```
-
-Copia ese prompt, rellena los corchetes con tus datos y mándaselo. El agente actualiza todo.
-
-### Más ejemplos de cosas que puedes pedirle al agente
-
-**Añadir un canal de notificaciones:**
-```
-Configura Telegram como canal de notificaciones. Mi número de teléfono es [NÚMERO].
-Actualiza HEARTBEAT.md para que las alertas importantes me lleguen por Telegram.
-```
-
-**Ajustar las políticas de seguridad:**
-```
-Quiero que puedas auto-aprobar análisis de datos y health checks,
-pero necesito aprobación explícita para cualquier cosa que salga al exterior
-(emails, tweets, deploys). Actualiza ops/policies.json.
-```
-
-**Definir el contexto de tu producto:**
-```
-Actualiza shared/product-context.md con esto:
-Estoy construyendo [DESCRIBE TU PRODUCTO]. El público objetivo es [PÚBLICO].
-Las prioridades actuales son [PRIORIDADES].
-```
-
-**Ajustar la voz del agente de contenido:**
-```
-Actualiza shared/voice-and-framing.md y agents/content-agent/SOUL.md.
-Quiero que el contenido que genere suene [CÓMO QUIERES QUE SUENE].
-Ejemplos de mi estilo: [PON 2-3 EJEMPLOS].
+~/.openclaw/workspace/
+├── SOUL.md              # Personalidad de Karina
+├── IDENTITY.md          # Ficha de identidad
+├── USER.md              # Datos de Hans
+├── MEMORY.md            # Memoria a largo plazo
+├── AGENTS.md            # Manual de operaciones
+├── HEARTBEAT.md         # Checks periódicos
+├── TOOLS.md             # Notas de setup local
+│
+├── agents/              # Agentes especializados
+│   ├── developer-agent/
+│   ├── content-agent/
+│   ├── research-agent/
+│   ├── design-agent/
+│   ├── sysagent/        ← nuevo
+│   └── forge-agent/
+│
+├── shared/              # Contexto compartido entre agentes
+│   ├── karina-profile.md   # Perfil completo (1524 líneas)
+│   ├── product-context.md
+│   ├── voice-and-framing.md
+│   ├── decisions.md
+│   └── user-signals.md
+│
+├── intel/               # Inteligencia estratégica
+│   ├── competitors.md      # Portfolio de Hans + competencia
+│   ├── trends.md           # Tendencias relevantes
+│   ├── ideas-backlog.md    # Ideas con estado
+│   ├── opportunities.md    # Oportunidades de mercado
+│   ├── rag-chat-system-PRD.md
+│   ├── rag-chat-system-TRD.md
+│   └── rag-chat-system-plan.md
+│
+├── scripts/             # Scripts de automatización
+│   ├── auto-backup.sh
+│   ├── nightly-consolidation.sh
+│   ├── generate-alerts.sh
+│   ├── check-github.sh
+│   ├── check-icloud-cal.sh
+│   ├── health-check.sh
+│   ├── morning-summary.sh
+│   └── watchdog.sh
+│
+├── ops/                 # Políticas y configuración
+│   ├── policies.json
+│   └── reaction-matrix.json
+│
+└── memory/              # Memoria diaria
+    └── YYYY-MM-DD.md
 ```
 
 ---
 
-## Paso 4 — Conectar tu canal de mensajería
+## 🛠️ Stack Técnico
 
-Puedes usar el canal que quieras. **Telegram es el más fácil de configurar** y funciona bien desde el móvil.
-
-### Telegram (recomendado — 5 minutos)
-
-1. Habla con `@BotFather` en Telegram → `/newbot` → guarda el token
-2. Pide al agente que actualice la config:
-
-```
-Configura el canal Telegram con este bot token: [TU_TOKEN]
-La política de DMs debe ser "allowlist" y mi ID de Telegram es [TU_ID_TELEGRAM]
-(para saber tu ID: reenvía un mensaje a @userinfobot)
-```
-
-O edita `~/.openclaw/openclaw.json` directamente:
-
-```json5
-{
-  channels: {
-    telegram: {
-      enabled: true,
-      botToken: "123456:ABC-tu-token-aqui",
-      dmPolicy: "allowlist",
-      allowFrom: ["TU_ID_NUMERICO_TELEGRAM"]
-    }
-  }
-}
-```
-
-Reinicia el gateway y ya puedes hablar con tu agente desde Telegram.
+| Componente | Tecnología |
+|------------|------------|
+| OS | Arch Linux (kernel zen) |
+| Shell | Fish (default) + Bash (non-interactive) |
+| Python | uv (gestión de entornos + versiones) |
+| Node | npm global + volta |
+| Git | GitHub (origin + upstream) |
+| LLM | z.ai (GLM-5-turbo, GLM-4.5-air) |
+| OAuth | gog CLI (Google Workspace) |
+| CalDAV/CardDAV | vdirsyncer |
+| OCR | Tesseract (spa + eng) |
+| Tunnel | Cloudflare Tunnel |
+| VPN | Tailscale |
 
 ---
 
-### WhatsApp
+## 📋 Proyectos Activos
 
-WhatsApp funciona vía WhatsApp Web (sin API oficial de negocio). Necesita un número vinculado:
-
-```bash
-# Instala el plugin
-openclaw plugins install @openclaw/whatsapp
-
-# Vincula escaneando QR
-openclaw channels login --channel whatsapp
-```
-
-Actualiza la config:
-
-```json5
-{
-  channels: {
-    whatsapp: {
-      dmPolicy: "allowlist",
-      allowFrom: ["+34600000000"]  // tu número en formato E.164
-    }
-  }
-}
-```
-
-> **Nota:** OpenClaw recomienda usar un número dedicado (no tu número personal) para WhatsApp cuando sea posible.
+| Proyecto | Repo | Estado |
+|----------|------|--------|
+| **RAG Chat System** | [hbuddenberg/rag-chat](https://github.com/hbuddenberg/rag-chat) (privado) | ✅ Funcional |
+| **Karina System** | hbuddenberg/karina_system (privado) | ✅ Activo |
+| **OpenClaw Workspace** | [hbuddenberg/openclaw-workspace](https://github.com/hbuddenberg/openclaw-workspace) | ✅ Activo |
+| **MITSUHA** | Kayser-V/MITSUHA | ⬜ Pausado |
+| **AI-Vtuber** | Kayser-V/AI-Vtuber | ⬜ Pausado |
+| **Akasa** | Arkhur-Vo/Akasa (privado) | ⬜ En desarrollo |
+| **ouroborOS** | Arkhur-Vo/ouroborOS (privado) | ⬜ En desarrollo |
 
 ---
 
-### iMessage (solo Mac)
+## 📝 Licencia
 
-iMessage requiere un Mac físico con Messages.app configurado. No funciona en servidores Linux. Si tienes tu OpenClaw en un Mac, sigue la [guía de iMessage](https://docs.openclaw.ai/channels/imessage). Para servidores, usa Telegram o WhatsApp.
-
----
-
-## Qué hay dentro
-
-### Ficheros raíz
-
-| Fichero | Para qué sirve |
-|---------|----------------|
-| `AGENTS.md` | Manual de operaciones — comportamiento, seguridad, cuándo hablar y cuándo no |
-| `SOUL.md` | Personalidad — opiniones, valores, tono |
-| `USER.md` | Sobre ti — preferencias, proyectos, estilo de trabajo |
-| `IDENTITY.md` | Identidad del agente — nombre, vibe, emoji |
-| `MEMORY.md` | Memoria a largo plazo — curada por el agente con el tiempo |
-| `MISTAKES.md` | Registro de errores — para que no se repitan |
-| `HEARTBEAT.md` | Checks periódicos — qué monitorizar proactivamente |
-| `TOOLS.md` | Notas de setup local — SSH, dispositivos, quirks |
-| `SQUAD.md` | Guía del equipo multi-agente |
-| `TOKEN-OPTIMIZATION.md` | Cómo reducir el consumo de tokens del LLM |
-| `MESH.md` | Setup multi-máquina — distribuye el cómputo |
-
-### Equipo de agentes (`agents/`)
-
-```
-agents/
-├── content-agent/    — tweets, posts, outreach (nunca publica sin aprobación)
-│   ├── SOUL.md
-│   └── WORKING.md    — cola de borradores pendientes
-├── dev-agent/        — revisión de código, monitorización, triage de bugs
-│   ├── SOUL.md
-│   └── TICK.md       — log de actividad
-└── research-agent/   — analytics, competencia, inteligencia de mercado
-    ├── SOUL.md
-    └── FINDINGS.md   — informes de investigación
-```
-
-### Cerebro compartido (`shared/` + `intel/`)
-
-```
-shared/                    — todos los agentes lo leen al arrancar
-├── product-context.md     — qué estás construyendo, prioridades, posicionamiento
-├── voice-and-framing.md   — cómo hablar de tus productos
-├── decisions.md           — decisiones clave + por qué (evita contradicciones)
-└── user-signals.md        — qué dicen y hacen tus usuarios
-
-intel/                     — radar estratégico
-├── competitors.md         — movimientos de la competencia
-├── trends.md              — tendencias del sector
-├── ideas-backlog.md       — ideas de features con contexto
-└── opportunities.md       — oportunidades de mercado con ventana temporal
-```
-
-### Operaciones (`ops/`)
-
-- **`policies.json`** — reglas de auto-aprobación, límites diarios, horarios, stops duros
-- **`reaction-matrix.json`** — cómo reaccionan los agentes entre sí (comportamiento emergente)
-
-### Scripts (`scripts/`)
-
-- **`auto-backup.sh`** — backup git por hora de todo el workspace. Ponlo como cron y nunca pierdas contexto
-- **`health-check.sh`** — monitoriza procesos y disco, lanza alertas si algo cae
-- **`example-heartbeat-check.sh`** — plantilla para checks de heartbeat eficientes
-- **`watchdog.sh`** — monitor de auto-recuperación que reinicia agentes caídos
-- **`bootstrap-mac.sh`** — bootstrap para añadir un Mac al mesh
-
----
-
-## Cómo funciona la memoria
-
-```
-Sesión 1: el agente aprende que prefieres respuestas cortas
-  → escribe en memory/2026-03-15.md
-  → actualiza MEMORY.md con la preferencia
-
-Sesión 2: el agente arranca desde cero, lee MEMORY.md
-  → ya sabe tus preferencias desde el primer mensaje
-  → continúa donde lo dejó
-```
-
-**Ficheros diarios** (`memory/YYYY-MM-DD.md`) = logs en bruto de lo que pasó  
-**Largo plazo** (`MEMORY.md`) = sabiduría destilada, revisada periódicamente
-
-### Consolidación nocturna
-
-Cada noche a las 2am, un cron hace que el agente:
-
-1. Revise las conversaciones del día y guarde lo que no se registró
-2. Actualice `MEMORY.md` con nuevas preferencias, decisiones y correcciones
-3. Limpie memorias obsoletas
-4. Cruce `MISTAKES.md` para que cada error tenga su regla de prevención
-5. Escriba un resumen en `memory/consolidation-YYYY-MM-DD.md`
-
-```bash
-# Añade el cron de consolidación nocturna
-openclaw cron add "consolidacion-nocturna" \
-  --schedule "0 2 * * *" \
-  --prompt "Revisa las conversaciones de hoy. Extrae decisiones, preferencias y correcciones no guardadas. Limpia memorias obsoletas. Revisa MISTAKES.md. Escribe resumen en memory/consolidation-$(date +%Y-%m-%d).md."
-```
-
----
-
-## Cómo funciona el equipo de agentes
-
-```
-TÚ → mensajeas al coordinador → el coordinador delega → los agentes trabajan → los resultados vuelven
-```
-
-- El **agente de contenido** redacta un tweet → lo encola en WORKING.md → el coordinador lo revisa → tú apruebas → se publica
-- El **agente de dev** detecta un fallo en CI → alerta al coordinador → te llega una notificación
-- El **agente de investigación** detecta que un competidor lanzó algo → lo reporta en FINDINGS.md → el agente de contenido prepara una respuesta
-
-Los agentes reaccionan entre sí vía `reaction-matrix.json`:
-
-| Evento | Reacción | Probabilidad | Delay |
-|--------|----------|--------------|-------|
-| Tweet publicado | Research agent analiza engagement | 50% | 1 hora |
-| Bug detectado | Alerta inmediata al humano | 100% | Sin delay |
-| Alto engagement | Content agent redacta followup | 70% | Sin delay |
-| Misión fallida | Dev agent diagnostica | 100% | Sin delay |
-
----
-
-## Alertas y monitorización
-
-Si corres agentes 24/7, necesitas saber cuándo caen.
-
-```bash
-# Configura las alertas
-export ALERT_PHONE="+34600000000"
-
-# Opcional: monitoriza una segunda máquina
-export REMOTE_HOST="agent2@100.x.x.x"
-export REMOTE_NAME="forge"
-
-# Pruébalo
-bash scripts/health-check.sh
-
-# Configura como cron (cada 10 minutos):
-openclaw cron add "health-check" \
-  --schedule "*/10 * * * *" \
-  --prompt "Ejecuta bash ~/.openclaw/scripts/health-check.sh"
-```
-
-El estado se escribe en `data/health.json` para uso en dashboards.
-
----
-
-## Backup del workspace
-
-Tu workspace es el cerebro del agente. Hazle backup.
-
-```bash
-cd ~/.openclaw
-git init
-git remote add origin git@github.com:tu-usuario/mi-agente.git
-
-# Prueba el backup
-bash scripts/auto-backup.sh
-
-# Backup automático por hora vía cron de openclaw:
-openclaw cron add "workspace-backup" \
-  --schedule "0 * * * *" \
-  --prompt "Ejecuta bash ~/.openclaw/scripts/auto-backup.sh"
-```
-
-`.gitignore` recomendado:
-```
-node_modules/
-*.log
-.DS_Store
-.next/
-```
-
----
-
-## Filosofía
-
-> Los scripts son gratis. El tiempo de modelo es caro.
-
-Los checks del heartbeat deberían ser scripts de shell que no imprimen nada cuando no hay nada que hacer. El agente solo se despierta cuando hay output real al que reaccionar.
-
-> Nunca auto-apruebes las cosas peligrosas.
-
-Tweets, emails, deploys, borrados — siempre requieren aprobación humana. Investigación, análisis, health checks — auto-aprueba sin problema.
-
-> Tu agente es tan bueno como el contexto que le das.
-
-Rellena `USER.md`. Ponle nombre. Cuéntale tus preferencias. Cuanto más sepa, mejor trabaja.
+Uso personal. Fork de [edunavajas/openclaw-workspace](https://github.com/edunavajas/openclaw-workspace).
 
 ---
 
 Construido con [OpenClaw](https://openclaw.ai) • [Docs](https://docs.openclaw.ai) • [Comunidad](https://discord.com/invite/clawd)
-
