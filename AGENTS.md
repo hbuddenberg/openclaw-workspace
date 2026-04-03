@@ -176,6 +176,13 @@ El sistema aprende de errores y aciertos continuamente. Dos archivos lo hacen po
 
 **Regla de oro:** Si algo sale mal, loguearlo ANTES de arreglarlo. Si algo sale bien, loguearlo DESPUÉS de confirmar que funciona.
 
+## Reference Files
+
+- **BEST-PRACTICES.md** — Buenas prácticas generales (contexto, modelos, sistema, errores)
+- **TOKEN-OPTIMIZATION.md** — Optimización de uso de modelos y contexto window
+- **MISTAKES.md** — Errores cometidos y reglas de prevención
+- **WINS.md** — Patrones que funcionaron bien
+
 ## Make It Yours
 
 This is a starting point. Add conventions, expand rules, create new files as you figure out what actually works for your setup.

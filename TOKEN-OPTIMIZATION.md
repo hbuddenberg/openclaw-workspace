@@ -1,91 +1,66 @@
-# Token Optimization Guide
+# Token Optimization
 
-How to stretch your Claude Max (or any LLM subscription) significantly further.
+*Adaptado para setup con z.ai + OpenClaw en NUC*
 
-## The Problem
+## Regla Principal
 
-Every message you send includes:
-- All previous messages in the conversation (context window)
-- All auto-injected instructions (memory category: `instruction`)
-- System prompts, tool definitions, and file contents read during the session
+Cada mensaje envía TODO el contexto: historial + memories instruction + system prompt + tool definitions. Context grande = tokens gastados en cada interacción.
 
-A 50-message conversation might be sending 100k+ tokens per message. That's why a $200/month plan burns out in 2-3 days.
+## Optimización de Modelos
 
-## Quick Wins (free, immediate)
+### Modelo correcto por tarea
+| Tarea | Modelo | Costo/quality |
+|-------|--------|---------------|
+| Chat Hans (coordinación) | glm-5-turbo | Alto/alto |
+| Subagentes (código, docs, UX) | glm-4.5-air | Medio/alto |
+| Tasks simples (formateo, checks) | glm-4.5-flash | Gratis/suficiente |
+| Investigación largo contexto | glm-4.7 | Medio/alto |
 
-### 1. Minimize auto-injected instructions
+### Context windows
+| Modelo | Context | Max output |
+|--------|---------|------------|
+| glm-5-turbo | 202,800 | 131,100 |
+| glm-4.7 | 204,800 | 131,072 |
+| glm-4.5-air | 131,072 | 98,304 |
+| glm-4.5-flash | 131,072 | 98,304 |
 
-OpenClaw's memory-tools plugin auto-injects every memory with `category: instruction` into every single message. Each instruction burns tokens on every exchange.
+## Gestión de Memoria
 
-**Rules:**
-- Only store truly universal rules as `instruction` (style, tone, core behavior)
-- Store everything else as `context` (searched on-demand, not auto-injected)
-- Target: 4-5 instruction memories max, ~200 tokens total
+### Instruction memories (auto-inyectadas en CADA mensaje)
+- Máximo 4-5 entries, ~200 tokens total
+- Solo reglas universales: estilo, tono, delegación, hard lines
+- Todo lo demás → `context` o `fact` (buscado on-demand, no auto-inyectado)
 
-**Good instruction memories** (needed in every message):
-- Writing style / tone preferences
-- Core delegation rules
-- Communication preferences
+### Cuándo resetear sesión
+| Largo | Tokens/msg | Acción |
+|-------|-----------|--------|
+| < 10 msgs | ~5-10k | Seguir |
+| 10-20 msgs | ~20-30k | Seguir, ser conciso |
+| 20-30 msgs | ~40-60k | ⚠️ Sugerir reset si cambió tema |
+| 30+ msgs | ~80k+ | 🔄 Resetear al cambiar tema |
 
-**Bad instruction memories** (move these to context):
-- API syntax and patterns (only needed when using that API)
-- Project-specific guardrails (only needed when working on that project)
-- Reference templates (only needed when writing that type of content)
+**Regla:** Session reset al cambiar de proyecto o tema. 10 msgs enfocados >>> 50 msgs dispersos.
 
-### 2. Reset conversations often
+## Lectura de Archivos
 
-Context grows linearly with conversation length. Message 50 carries all 49 previous messages.
+- **Siempre** usar `offset` y `limit` para archivos grandes
+- Un archivo de 500 líneas leído completo = 500 líneas de tokens en CADA mensaje subsiguiente
+- **Regla:** Si necesito 20 líneas de un archivo de 500, usar offset/limit
 
-| Conversation length | Approx tokens/message | Waste factor |
-|---------------------|----------------------|--------------|
-| 5 messages          | ~5k                  | 1x (baseline) |
-| 20 messages         | ~30k                 | 6x |
-| 50 messages         | ~80k                 | 16x |
-| 100 messages        | context limit hit    | compaction kicks in |
+## Batching
 
-**Rule of thumb:** start a new conversation when switching topics. One focused 10-message thread beats a sprawling 50-message one.
+- 5 preguntas en 1 mensaje = 1 envío de contexto
+- 5 mensajes con 1 pregunta cada = 5 envíos de contexto
+- **Regla:** Agrupar preguntas. Si Hans manda varias cosas juntas, responder todo junto.
 
-### 3. Read files efficiently
+## Tips Específicos
 
-Use `Read` with `offset` and `limit` instead of loading entire files. A 500-line file read once stays in context for the rest of the session.
+### Para subagentes
+- Usar modelo más barato (glm-4.5-flash para tasks simples)
+- Los subagentes no cargan la misma memoria que el main agent
+- Tasks bien definidos = menos tokens ida y vuelta
 
-### 4. Batch your questions
-
-5 separate messages = 5 full context sends. One message with 5 questions = 1 context send.
-
-## Multi-Machine Delegation
-
-If you have two machines (e.g. main agent + secondary forge), route tasks by complexity:
-
-| Task type | Where to run | Why |
-|-----------|-------------|-----|
-| Quick answers, conversation | Primary | Low tokens, fast |
-| Code generation | Secondary (forge) | High tokens, delegated |
-| Web research | Secondary (forge) | Fetching adds to context |
-| File analysis | Secondary (forge) | Large content in context |
-| Local file edits | Primary | Needs filesystem access |
-
-Delegation via SSH:
-```bash
-ssh agent-2@<tailscale-ip> "openclaw gateway call chat.send \
-  --token '<gateway-token>' \
-  --params '{\"sessionKey\": \"agent:main:main\", \"message\": \"<task>\", \"idempotencyKey\": \"<unique-id>\"}'"
-```
-
-**Important:** `sessions_spawn` with `gatewayUrl` does NOT delegate compute. It still runs locally. Use `chat.send` via SSH for true remote delegation.
-
-## Memory Hygiene
-
-Audit your instruction memories periodically:
-
-```bash
-# Check how many instruction memories exist
-sqlite3 ~/.openclaw/memory/tools/memory.db \
-  "SELECT COUNT(*) FROM memories WHERE category = 'instruction';"
-```
-
-Target: 4-5 instruction memories, everything else as context/fact/decision.
-
-## Session Auto-Reset
-
-Configure your agent to proactively suggest session resets when context exceeds 50%. This prevents the worst token waste from long-running mega-conversations.
+### Para el main agent
+- No narrar tool calls obvios (ahorra tokens output)
+- Respuestas cortas cuando Hans comunica corto
+- NO_REPLY cuando no hay nada que decir (0 tokens)
