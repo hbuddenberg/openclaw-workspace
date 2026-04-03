@@ -7,7 +7,7 @@
 #   schedule: "0 * * * *"
 #   payload: { kind: "agentTurn", message: "run bash ~/clawd/scripts/auto-backup.sh" }
 
-WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/clawd}"
+WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 cd "$WORKSPACE" || exit 1
 
 # Add everything except large/temp files

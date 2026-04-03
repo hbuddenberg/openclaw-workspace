@@ -14,7 +14,7 @@
 #   schedule: { kind: "every", everyMs: 600000 }
 #   payload: { kind: "agentTurn", message: "run bash ~/clawd/scripts/health-check.sh" }
 
-WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/clawd}"
+WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
 HEALTH_FILE="$WORKSPACE/data/health.json"
 ALERT_PHONE="${ALERT_PHONE:-}"
 REMOTE_HOST="${REMOTE_HOST:-}"
@@ -82,13 +82,13 @@ if [ -n "$REMOTE_DISK" ] && [ "$REMOTE_DISK" -gt "$DISK_WARN_PCT" ] 2>/dev/null;
     ALERT_MSG="${ALERT_MSG}⚠️ $REMOTE_NAME disk at ${REMOTE_DISK}%"
 fi
 
-# Send alert (macOS iMessage) with cooldown to avoid spam
+# Send alert (Telegram via openclaw notify)
 COOLDOWN_FILE="/tmp/openclaw-health-alert-cooldown"
-if [ -n "$ALERT_MSG" ] && [ -n "$ALERT_PHONE" ]; then
-    if [ ! -f "$COOLDOWN_FILE" ] || [ $(( $(date +%s) - $(stat -f %m "$COOLDOWN_FILE" 2>/dev/null || echo 0) )) -gt 1800 ]; then
-        osascript -e "tell application \"Messages\" to send \"$ALERT_MSG\" to participant \"$ALERT_PHONE\" of account 1" 2>/dev/null
+if [ -n "$ALERT_MSG" ]; then
+    if [ ! -f "$COOLDOWN_FILE" ] || [ $(( $(date +%s) - $(stat -c %Y "$COOLDOWN_FILE" 2>/dev/null || echo 0) )) -gt 1800 ]; then
+        echo "$ALERT_MSG"
         touch "$COOLDOWN_FILE"
-        echo "[$(date)] ALERT sent: $ALERT_MSG"
+        echo "[$(date)] ALERT: $ALERT_MSG"
     fi
 else
     rm -f "$COOLDOWN_FILE"
